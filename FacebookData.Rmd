@@ -1,0 +1,117 @@
+---
+title: "Scatterplots"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+
+
+```{r setup, include=FALSE}
+pf <- read.csv('pseudo_facebook.tsv', sep= '\t')
+```
+
+```{r}
+summary(pf$age)
+```
+
+
+```{r}
+#qplot(age, friend_count, data=pf)
+#The age variable becomes discrete so we use alpha 1/20 so we can have depth and understand the numbers
+ggplot(aes(x=age, y=friend_count), data=pf) + 
+  geom_jitter(alpha = 1/20) +
+  xlim(13,90)
+```
+
+
+```{r}
+#Note we need to make sure the minimum height of the jitter to be 0 because we're using sqrt
+ggplot(aes(x=age, y=friend_count), data=pf) + 
+  geom_jitter(alpha = 1/20, position=position_jitter(h = 0)) +
+  xlim(13,90)+
+  coord_trans(y="sqrt")
+```
+
+
+```{r}
+ggplot(aes(x=age, y=friendships_initiated), data=pf)+
+  geom_jitter(alpha = 1/10, position = position_jitter(h = 0))+
+  coord_trans(y='sqrt')
+```
+
+
+
+```{r}
+#Arranging by age group. The %>% chains the function to the pf dataset
+pf.fc_by_age <- pf %>%
+  group_by(age) %>%
+  summarise(friend_count_mean = mean(friend_count),
+            friend_count_median = median(friend_count),
+            n = n()) %>%
+  arrange(age)
+```
+
+
+```{r}
+#Plotting the median friend count
+ggplot(aes(x=age, y=friend_count_mean), data = pf.fc_by_age)+
+  geom_point() + geom_line()
+```
+
+
+
+```{r}
+ggplot(aes(x=age, y=friendships_initiated), data=pf)+
+  xlim(13,90) +
+  geom_jitter(alpha = 0.05, 
+              position = position_jitter(h = 0),
+              color = 'orange') +
+  coord_trans(y='sqrt')+
+  geom_line(stat = 'summary', fun.y=mean)
+```
+
+
+
+```{r}
+#Below we added the have the 90% and 10% quantiles (dotted blue lines)
+#The mean is the black line
+#The median is the solid blue line
+ggplot(aes(x=age, y=friendships_initiated), data=pf)+
+  xlim(13,90) +
+  geom_jitter(alpha = 0.05, 
+              position = position_jitter(h = 0),
+              color = 'orange') +
+  coord_trans(y='sqrt')+
+  geom_line(stat = 'summary', fun.y=mean) +
+  geom_line(stat = 'summary', fun.y=quantile, fun.args = list(probs = .1), linetype = 2, color = 'blue')+
+  geom_line(stat = 'summary', fun.y=quantile, fun.args = list(probs = .5), color = 'blue')+
+  geom_line(stat = 'summary', fun.y=quantile, fun.args = list(probs = .9), linetype = 2, color = 'blue')
+```
+
+
+
+```{r}
+#Using coord_cartesian to zoom in to 600 and below
+ggplot(aes(x=age, y=friendships_initiated), data=pf)+
+  geom_point(alpha = 0.05, 
+              position = position_jitter(h = 0),
+              color = 'orange') +
+  coord_cartesian(xlim = c(13,70), ylim = c(0,1000))+
+  geom_line(stat = 'summary', fun.y=mean) +
+  geom_line(stat = 'summary', fun.y=quantile, fun.args = list(probs = .1),
+            linetype = 2, color = 'blue')+
+  geom_line(stat = 'summary', fun.y=quantile, fun.args = list(probs = .5),
+            color = 'blue')+
+  geom_line(stat = 'summary', fun.y=quantile, fun.args = list(probs = .9),
+            linetype = 2, color = 'blue')
+```
+
+
+
+
