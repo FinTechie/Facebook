@@ -1,0 +1,81 @@
+---
+title: "Facebook3Var"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+suppressMessages(library(dplyr))
+library(ggplot2)
+pf <- read.csv('pseudo_facebook.tsv', sep= '\t')
+```
+
+```{r}
+#Grouping by age and gender
+pf.fc_by_age_gender <- pf %>%
+  filter(!is.na(gender)) %>%
+  group_by(age, gender) %>%
+  summarise(mean_friend_count = mean(friend_count),
+            median_friend_count = median(friend_count),
+            n = n()) %>%
+  ungroup() %>%
+  arrange(age)
+```
+
+```{r}
+#putting color in an aesthetic wrapper in the line
+ggplot(pf.fc_by_age_gender, aes(x=age, y=median_friend_count)) +geom_line(aes(color=gender))
+```
+
+
+
+```{r}
+#Creating a wide dataframe
+library(reshape2)
+pf.fc_by_age_gender.wide <- dcast(pf.fc_by_age_gender,
+                                  age ~ gender,
+                                  value.var = 'median_friend_count')
+```
+
+
+```{r}
+#Plotting the multiple of friends that females have compared to men
+ggplot(pf.fc_by_age_gender.wide, aes(x=age, y=female/male)) +geom_line(color='lime green') +
+  geom_hline(yintercept = 1, alpha =0.3, linetype=2)+
+  ylab('xMale Friends')
+```
+
+```{r}
+#Creating a variable year joined by subtracting tenure(days) from date of sample (2014)
+pf$year_joined <- floor(2014 - (pf$tenure/365))
+```
+
+```{r}
+summary(pf$year_joined)
+table(pf$year_joined)
+```
+
+```{r}
+#Dividing up the years joined with cut function
+pf$year_joined.bucket <- cut(pf$year_joined, breaks = c(2004,2009,2011,2012, 2014))
+table(pf$year_joined.bucket)
+```
+
+
+
+```{r}
+#Plotting the different lines for each year joined bucket
+ggplot(subset(pf, !is.na(pf$year_joined.bucket)), aes(x=age, y=friend_count))+geom_line(aes(color=year_joined.bucket), stat='summary', fun.y=median)
+```
+
+```{r}
+#Plotting the mean but also adding the grandmean
+ggplot(subset(pf, !is.na(pf$year_joined.bucket)), aes(x=age, y=friend_count))+
+  geom_line(aes(color=year_joined.bucket), stat='summary', fun.y=mean)+
+  geom_line(stat='summary', fun.y=mean)
+```
+
+
+
+
