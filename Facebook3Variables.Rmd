@@ -70,8 +70,30 @@ ggplot(subset(pf, !is.na(pf$year_joined.bucket)), aes(x=age, y=friend_count))+
 #Plotting the mean but also adding the grandmean 
 ggplot(subset(pf, !is.na(pf$year_joined.bucket)), aes(x=age, y=friend_count))+ 
   geom_line(aes(color=year_joined.bucket), stat='summary', fun.y=mean)+ 
-  geom_line(stat='summary', fun.y=mean)
+  geom_line(stat='summary', fun.y=mean, linetype=2)
 ```
+
+
+
+
+```{r}
+#If we were to look at the fc by day as a rate: (fc/tenure)
+with(subset(pf, tenure>0), summary(friend_count/tenure))
+```
+
+
+```{r}
+#looking at how many friendships someone initiates based on tenure, colored by year joined
+ggplot(subset(pf, tenure>0), aes(x=tenure, y=friendships_initiated/tenure)) +
+  geom_line(aes(color=year_joined.bucket), stat='summary')
+```
+
+```{r}
+#With smooth line (using loess)
+ggplot(subset(pf, tenure>0), aes(x=tenure, y=friendships_initiated/tenure)) +
+  geom_smooth(aes(color=year_joined.bucket))
+```
+
 
 
 
