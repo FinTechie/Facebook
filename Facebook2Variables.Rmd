@@ -1,0 +1,57 @@
+---
+title: "Facebook3Var"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+suppressMessages(library(dplyr))
+library(ggplot2)
+pf <- read.csv('pseudo_facebook.tsv', sep= '\t')
+```
+
+```{r}
+#Grouping by age and gender
+pf.fc_by_age_gender <- pf %>%
+  filter(!is.na(gender)) %>%
+  group_by(age, gender) %>%
+  summarise(mean_friend_count = mean(friend_count),
+            median_friend_count = median(friend_count),
+            n = n()) %>%
+  ungroup() %>%
+  arrange(age)
+```
+
+```{r}
+#putting color in an aesthetic wrapper in the line
+ggplot(pf.fc_by_age_gender, aes(x=age, y=median_friend_count)) +geom_line(aes(color=gender))
+```
+
+
+
+```{r}
+#Creating a wide dataframe
+library(reshape2)
+pf.fc_by_age_gender.wide <- dcast(pf.fc_by_age_gender,
+                                  age ~ gender,
+                                  value.var = 'median_friend_count')
+```
+
+
+```{r}
+#Plotting the multiple of friends that females have compared to men
+ggplot(pf.fc_by_age_gender.wide, aes(x=age, y=female/male)) +geom_line(color='lime green')+
+  ylab('xMale Friends')
+```
+
+
+
+
+
+
+
+
+
+
+
